@@ -8,30 +8,16 @@ import {
   Thead,
   Tr,
 } from '@chakra-ui/table';
-import {
-  DeleteRecord,
-  GetAllRecords,
-  InsertRecord,
-  UpdateRecord,
-} from '../lib/record';
+import { DeleteRecord } from '../lib/record';
 import { Button, useDisclosure } from '@chakra-ui/react';
 import { StudyDetailModal } from '../organisms/StudyDetailModal';
 import { StudyRegModal } from '../organisms/StudyRegModal';
-import { useCallback, useEffect, useState } from 'react';
-import { Record } from '../domain/record';
+import { useCallback, useEffect } from 'react';
 import { useAllStudy } from '../hooks/useAllStudy';
 import { useSelectStudy } from '../hooks/useSelectStudy';
-import { useForm } from 'react-hook-form';
-
-// 入力の型設定
-type FormValues = {
-  studyContext: string;
-  studyTime: number;
-};
 
 export const Home = () => {
-  const [records, setRecords] = useState<Record[]>([]);
-  const [study, setStudy] = useState<Record | undefined>(undefined);
+  // const [records, setRecords] = useState<Record[]>([]);
   const {
     open: RegModalOpen,
     onOpen: onRegModalOpen,
@@ -44,9 +30,9 @@ export const Home = () => {
   } = useDisclosure();
   const { getStudy, studies, loading } = useAllStudy();
   const { onSelectStudy, selectedStudy } = useSelectStudy();
-  const {
-    formState: { errors },
-  } = useForm<FormValues>();
+  // const {
+  //   formState: { errors },
+  // } = useForm<FormValues>();
 
   const onClickStudy = useCallback(
     (id: string) => {
@@ -57,10 +43,16 @@ export const Home = () => {
 
   // 削除
   const onClickDelete = async (id: string) => {
+    // 削除するidをコンソールに表示
+    console.log(`削除するid: ${id}です`);
+
     await DeleteRecord(id);
+
     // 削除後のレコードを取得
-    const updateAllRecord = await GetAllRecords();
-    setRecords(updateAllRecord);
+    // const updateAllRecord = await GetAllRecords();
+    // setRecords(updateAllRecord);
+    // console.log(records);
+    await getStudy();
   };
 
   // 更新

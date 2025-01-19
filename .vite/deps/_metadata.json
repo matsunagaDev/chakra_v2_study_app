@@ -1,0 +1,100 @@
+{
+  "hash": "5146bbf9",
+  "configHash": "6ce4c075",
+  "lockfileHash": "29acf489",
+  "browserHash": "2a59f50b",
+  "optimized": {
+    "@chakra-ui/form-control": {
+      "src": "../../node_modules/@chakra-ui/form-control/dist/index.mjs",
+      "file": "@chakra-ui_form-control.js",
+      "fileHash": "e13ce2d7",
+      "needsInterop": false
+    },
+    "@chakra-ui/modal": {
+      "src": "../../node_modules/@chakra-ui/modal/dist/index.mjs",
+      "file": "@chakra-ui_modal.js",
+      "fileHash": "3f91b622",
+      "needsInterop": false
+    },
+    "@chakra-ui/react": {
+      "src": "../../node_modules/@chakra-ui/react/dist/esm/index.js",
+      "file": "@chakra-ui_react.js",
+      "fileHash": "ed3dca78",
+      "needsInterop": false
+    },
+    "@chakra-ui/table": {
+      "src": "../../node_modules/@chakra-ui/table/dist/index.mjs",
+      "file": "@chakra-ui_table.js",
+      "fileHash": "a5f91d67",
+      "needsInterop": false
+    },
+    "@supabase/supabase-js": {
+      "src": "../../node_modules/@supabase/supabase-js/dist/module/index.js",
+      "file": "@supabase_supabase-js.js",
+      "fileHash": "f7723ae4",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "d4386bac",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "47f85ffc",
+      "needsInterop": true
+    },
+    "react-hook-form": {
+      "src": "../../node_modules/react-hook-form/dist/index.esm.mjs",
+      "file": "react-hook-form.js",
+      "fileHash": "dd36c0f6",
+      "needsInterop": false
+    },
+    "react-router": {
+      "src": "../../node_modules/react-router/dist/development/index.mjs",
+      "file": "react-router.js",
+      "fileHash": "89434538",
+      "needsInterop": false
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "66d619ec",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "browser-J6IYAAS7": {
+      "file": "browser-J6IYAAS7.js"
+    },
+    "browser-2YNC6QW7": {
+      "file": "browser-2YNC6QW7.js"
+    },
+    "chunk-JHQCLR4Y": {
+      "file": "chunk-JHQCLR4Y.js"
+    },
+    "chunk-TPNDOUUY": {
+      "file": "chunk-TPNDOUUY.js"
+    },
+    "chunk-WOLPXEIS": {
+      "file": "chunk-WOLPXEIS.js"
+    },
+    "chunk-IESXOJ55": {
+      "file": "chunk-IESXOJ55.js"
+    },
+    "chunk-7W32CK3N": {
+      "file": "chunk-7W32CK3N.js"
+    },
+    "chunk-JUWM2LYA": {
+      "file": "chunk-JUWM2LYA.js"
+    },
+    "chunk-W4EHDCLL": {
+      "file": "chunk-W4EHDCLL.js"
+    },
+    "chunk-EWTE5DHJ": {
+      "file": "chunk-EWTE5DHJ.js"
+    }
+  }
+}

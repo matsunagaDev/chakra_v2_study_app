@@ -9,7 +9,7 @@ import {
   ModalOverlay,
 } from '@chakra-ui/modal';
 import { Button, Input, Stack } from '@chakra-ui/react';
-import { ChangeEvent, FC, memo, useEffect, useState } from 'react';
+import { FC, memo, useEffect } from 'react';
 import { Record } from '../domain/record';
 import { UpdateRecord } from '../lib/record';
 import { useForm } from 'react-hook-form';
@@ -20,6 +20,7 @@ type Props = {
   onClose: () => void;
   onUpdate: () => void;
 };
+
 type FormValues = {
   learn_title: string;
   learn_time: number;
@@ -27,45 +28,39 @@ type FormValues = {
 
 export const StudyDetailModal: FC<Props> = memo((props) => {
   const { study, open, onClose, onUpdate } = props;
-  const [learn_title, setLearnTitle] = useState('');
-  const [learn_time, setLearnTime] = useState(0);
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormValues>();
+  } = useForm<FormValues>({
+    defaultValues: {
+      learn_title: '',
+      learn_time: 0,
+    },
+  });
 
-  const onChangeLearnTitle = (e: ChangeEvent<HTMLInputElement>) => {
-    setLearnTitle(e.target.value);
-  };
-
-  const onChangeLearnTime = (e: ChangeEvent<HTMLInputElement>) => {
-    setLearnTime(parseInt(e.target.value));
-  };
+  // studyまたはopenの値が変更されたときにフォームをリセット
+  useEffect(() => {
+    if (study && open) {
+      reset({
+        learn_title: study.learn_title,
+        learn_time: study.learn_time,
+      });
+    }
+  }, [study, open, reset]);
 
   const onClickUpdate = async (data: FormValues) => {
     if (!study) return;
 
     try {
       await UpdateRecord(study.id, data.learn_title, data.learn_time);
-      console.log(`更新${UpdateRecord}`);
-
       onUpdate();
-      // reset({ learn_title: '', learn_time: 0 });
       onClose();
     } catch (error) {
       console.error('更新に失敗しました', error);
     }
   };
-
-  // 更新時は、第二引数に設定する
-  useEffect(() => {
-    if (study) {
-      setLearnTitle(study?.learn_title ?? '');
-      setLearnTime(study?.learn_time ?? 0);
-    }
-  }, [study]);
 
   return (
     <Modal
@@ -87,8 +82,6 @@ export const StudyDetailModal: FC<Props> = memo((props) => {
                   {...register('learn_title', {
                     required: '学習内容を入力してください',
                   })}
-                  value={learn_title}
-                  onChange={onChangeLearnTitle}
                 />
                 <p style={{ color: 'red' }}>{errors.learn_title?.message}</p>
               </FormControl>
@@ -103,8 +96,6 @@ export const StudyDetailModal: FC<Props> = memo((props) => {
                       message: '学習時間は0以上である必要があります',
                     },
                   })}
-                  value={learn_time}
-                  onChange={onChangeLearnTime}
                 />
                 <p style={{ color: 'red' }}>{errors.learn_time?.message}</p>
               </FormControl>

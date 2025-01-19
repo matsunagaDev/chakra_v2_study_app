@@ -253,7 +253,7 @@ describe('studyTime check', () => {
 });
 
 // 削除ができること（モックを使用）
-describe.only('Delete check', () => {
+describe('Delete check', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -305,15 +305,109 @@ describe.only('Delete check', () => {
       expect(screen.queryByText('テスト学習内容2')).toBeInTheDocument();
     });
   });
+});
 
-  // 編集のテスト
-  describe('update check', () => {
-    it('編集のチェック', () => {
-      render(
-        <ChakraProvider value={defaultSystem}>
-          <App />
-        </ChakraProvider>
-      );
+// 編集のテスト
+describe('update check', () => {
+  it('編集のチェック', async () => {
+    const mockRecords = [
+      {
+        id: '1',
+        learn_title: 'テスト学習内容1',
+        learn_time: 2,
+        created_at: '2024-12-28',
+      },
+    ];
+
+    // GetAllRecords モックの動作を定義
+    (recordLib.GetAllRecords as jest.Mock).mockResolvedValueOnce(mockRecords);
+
+    render(
+      <ChakraProvider value={defaultSystem}>
+        <App />
+      </ChakraProvider>
+    );
+
+    // レコードを表示するのを待つ
+    await waitFor(() => {
+      expect(screen.queryByText('テスト学習内容1')).toBeInTheDocument();
+    });
+
+    // 編集ボタンをクリック
+    const editButton = screen.queryAllByRole('button', { name: '編集' })[0];
+    userEvent.click(editButton);
+
+    // 編集モーダルが表示されるのを待つ
+    await waitFor(() => {
+      expect(screen.queryByText('学習記録編集')).toBeInTheDocument();
+    });
+  });
+});
+
+// 編集して登録した結果が表示されるテスト
+describe.only('update and registry check', () => {
+  it('編集して登録した結果が表示される', async () => {
+    const mockRecords = [
+      {
+        id: '1',
+        learn_title: 'テスト学習内容1',
+        learn_time: 2,
+        created_at: '2024-12-28',
+      },
+    ];
+
+    // GetAllRecords モックの動作を定義
+    (recordLib.GetAllRecords as jest.Mock).mockResolvedValueOnce(mockRecords);
+    (recordLib.GetAllRecords as jest.Mock).mockResolvedValueOnce([
+      {
+        id: '1',
+        learn_title: 'テスト学習内容2',
+        learn_time: 5,
+        created_at: '2024-12-28',
+      },
+    ]);
+
+    render(
+      <ChakraProvider value={defaultSystem}>
+        <App />
+      </ChakraProvider>
+    );
+
+    // レコードを表示するのを待つ
+    await waitFor(() => {
+      expect(screen.queryByText('テスト学習内容1')).toBeInTheDocument();
+    });
+
+    // 編集ボタンをクリック
+    const editButton = screen.queryAllByRole('button', { name: '編集' })[0];
+    userEvent.click(editButton);
+
+    // 編集モーダルが表示されるのを待つ
+    await waitFor(() => {
+      expect(screen.queryByText('学習記録編集')).toBeInTheDocument();
+    });
+
+    // 既に入力されている学習内容を編集する
+    const studyInputContext = await screen.findByDisplayValue(
+      'テスト学習内容1'
+    );
+    userEvent.clear(studyInputContext);
+    userEvent.type(studyInputContext, 'テスト学習内容2');
+
+    // 学習時間を編集
+    const studyInputTime = await screen.findByDisplayValue('2');
+    userEvent.clear(studyInputTime);
+    userEvent.type(studyInputTime, '5');
+
+    // 更新ボタンをクリック
+    const registryButton = await screen.queryByRole('button', { name: '更新' });
+    if (registryButton) userEvent.click(registryButton);
+    console.log('更新ボタンなし');
+
+    // 登録後のデータを待つ
+    await waitFor(() => {
+      expect(screen.queryByText('テスト学習内容2')).toBeInTheDocument();
+      expect(screen.queryByText('5')).toBeInTheDocument();
     });
   });
 });

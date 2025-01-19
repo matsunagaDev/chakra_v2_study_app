@@ -9,7 +9,7 @@ import {
   ModalOverlay,
 } from '@chakra-ui/modal';
 import { Button, Input, Stack } from '@chakra-ui/react';
-import { GetAllRecords, InsertRecord } from '../lib/record';
+import { InsertRecord } from '../lib/record';
 import { useForm } from 'react-hook-form';
 import { FC, memo, useState } from 'react';
 import { Record } from '../domain/record';
@@ -27,7 +27,7 @@ type FormValues = {
 
 export const StudyRegModal: FC<Props> = memo((props) => {
   const { open, onClose, onInsert } = props;
-  const { error, setError } = useState('');
+  const [error, setError] = useState<string>('');
   const [records, setRecords] = useState<Record[]>([]);
   const {
     register,
@@ -45,6 +45,7 @@ export const StudyRegModal: FC<Props> = memo((props) => {
       console.log(`AddRecord = ${AddRecord}`);
       if (AddRecord) {
         setRecords((prev) => [...prev, AddRecord[0]]);
+        console.log(records);
       }
       onInsert();
       // モーダルのテキストボックスをクリア
