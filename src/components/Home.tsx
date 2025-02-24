@@ -90,10 +90,7 @@ export const Home = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-  const handlePageInputChange = (
-    valueAsString: string,
-    valueAsNumber: number
-  ) => {
+  const handlePageInputChange = (valueAsNumber: number) => {
     if (
       !isNaN(valueAsNumber) &&
       valueAsNumber >= 1 &&
@@ -272,7 +269,7 @@ export const Home = () => {
             min={1}
             max={totalPages}
             value={currentPage}
-            onChange={handlePageInputChange}
+            onChange={(_, value) => handlePageInputChange(value)}
             size="sm"
             w="70px"
             ml={2}

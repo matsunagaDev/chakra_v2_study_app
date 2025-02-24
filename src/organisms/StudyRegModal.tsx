@@ -111,10 +111,15 @@ export const StudyRegModal: FC<Props> = memo((props) => {
                   {...register('studyTime', {
                     required: '学習時間を入力してください',
                     validate: {
-                      isNumber: (value) =>
-                        !isNaN(Number(value)) || '数値を入力してください',
-                      minValue: (value) =>
-                        Number(value) > 0 || '0以上で入力してください',
+                      isValidNumber: (value) => {
+                        const converted = convertFullWidthToHalfWidth(
+                          value.toString()
+                        );
+                        const num = Number(converted);
+                        if (isNaN(num)) return '数値を入力してください';
+                        if (num <= 0) return '0以上で入力してください';
+                        return true;
+                      },
                     },
                     onChange: (e) => {
                       const converted = convertFullWidthToHalfWidth(
