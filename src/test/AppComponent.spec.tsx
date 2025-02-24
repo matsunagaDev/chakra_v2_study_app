@@ -3,14 +3,18 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { App } from '../App';
 import * as recordLib from '../lib/record';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
 
 jest.mock('../lib/record');
 
 // タイトルがあること
 describe('title', () => {
   it('should render title', async () => {
-    render(<App />);
+    render(
+      <ChakraProvider>
+        <App />
+      </ChakraProvider>
+    );
     await waitFor(() => {
       expect(screen.getByText('学習記録アプリ')).toBeInTheDocument();
     });
@@ -20,7 +24,11 @@ describe('title', () => {
 // ローディング画面が見れること
 describe('loading', () => {
   it('Loading画面を確認する', async () => {
-    render(<App />);
+    render(
+      <ChakraProvider>
+        <App />
+      </ChakraProvider>
+    );
     await waitFor(() => {
       expect(screen.getByText('Loading')).toBeInTheDocument();
     });
@@ -49,7 +57,7 @@ describe('list', () => {
 
   it('一覧を確認することができる', async () => {
     render(
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider>
         <App />
       </ChakraProvider>
     );
@@ -69,7 +77,7 @@ describe('list', () => {
 describe('registry_btn', () => {
   it('新規登録ボタンがある', async () => {
     render(
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider>
         <App />
       </ChakraProvider>
     );
@@ -100,7 +108,7 @@ describe('registry', () => {
 
   it('登録できること', async () => {
     render(
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider>
         <App />
       </ChakraProvider>
     );
@@ -143,7 +151,7 @@ describe('registry', () => {
 describe('modal title check', () => {
   it('モーダルのタイトルが新規登録になっていること', async () => {
     render(
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider>
         <App />
       </ChakraProvider>
     );
@@ -163,7 +171,7 @@ describe('modal title check', () => {
 describe('studyContext input check', () => {
   it('学習内容が未入力で登録時にエラーメッセージが表示される', async () => {
     render(
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider>
         <App />
       </ChakraProvider>
     );
@@ -196,7 +204,7 @@ describe('studyContext input check', () => {
 describe('studyTime check', () => {
   it('学習時間のエラーメッセージを表示する', async () => {
     render(
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider>
         <App />
       </ChakraProvider>
     );
@@ -224,7 +232,7 @@ describe('studyTime check', () => {
 
   it('学習時間に０を入力してエラーメッセージを表示する', async () => {
     render(
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider>
         <App />
       </ChakraProvider>
     );
@@ -283,7 +291,7 @@ describe('Delete check', () => {
     (recordLib.DeleteRecord as jest.Mock).mockResolvedValueOnce(undefined);
 
     render(
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider>
         <App />
       </ChakraProvider>
     );
@@ -323,7 +331,7 @@ describe('update check', () => {
     (recordLib.GetAllRecords as jest.Mock).mockResolvedValueOnce(mockRecords);
 
     render(
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider>
         <App />
       </ChakraProvider>
     );
@@ -368,7 +376,7 @@ describe.only('update and registry check', () => {
     ]);
 
     render(
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider>
         <App />
       </ChakraProvider>
     );

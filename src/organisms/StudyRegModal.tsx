@@ -10,9 +10,11 @@ import {
 } from '@chakra-ui/modal';
 import { Button, Input, Stack } from '@chakra-ui/react';
 import { InsertRecord } from '../lib/record';
+import { AddIcon } from '@chakra-ui/icons';
 import { useForm } from 'react-hook-form';
 import { FC, memo, useState } from 'react';
 import { Record } from '../domain/record';
+import { convertFullWidthToHalfWidth } from '../utils/format';
 
 type Props = {
   open: boolean;
@@ -75,17 +77,28 @@ export const StudyRegModal: FC<Props> = memo((props) => {
     >
       <form onSubmit={handleSubmit(onClickRecordAdd)}>
         <ModalOverlay />
-        <ModalContent backgroundColor="orange" pb={6}>
-          <ModalHeader>学習記録登録</ModalHeader>
-          <ModalCloseButton onClick={() => onClickClose() && onClose()} />
-          <ModalBody mx={12}>
-            <Stack borderSpacing={4}>
+        <ModalContent bg="white" pb={6}>
+          <ModalHeader
+            borderBottom="1px"
+            borderColor="gray.200"
+            bg="blue.600"
+            color="white" // ヘッダーテキストを白に
+          >
+            登録
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody mx={12} mt={4}>
+            <Stack spacing={4}>
               <FormControl>
                 <FormLabel>学習内容</FormLabel>
                 <Input
                   placeholder="学習内容を入力してください"
                   {...register('studyContext', {
                     required: '内容の入力は必須です',
+                    validate: {
+                      notOnlyWhitespace: (value) =>
+                        value.trim().length > 0 || '空白のみの入力はできません',
+                    },
                   })}
                 />
                 <p>{errors.studyContext?.message}</p>
@@ -93,13 +106,21 @@ export const StudyRegModal: FC<Props> = memo((props) => {
               <FormControl>
                 <FormLabel>学習時間</FormLabel>
                 <Input
-                  type="number"
+                  type="text"
                   placeholder="0"
                   {...register('studyTime', {
                     required: '学習時間を入力してください',
-                    min: {
-                      value: 1,
-                      message: '0以上で入力してください',
+                    validate: {
+                      isNumber: (value) =>
+                        !isNaN(Number(value)) || '数値を入力してください',
+                      minValue: (value) =>
+                        Number(value) > 0 || '0以上で入力してください',
+                    },
+                    onChange: (e) => {
+                      const converted = convertFullWidthToHalfWidth(
+                        e.target.value
+                      );
+                      e.target.value = converted;
                     },
                   })}
                 />
@@ -107,9 +128,21 @@ export const StudyRegModal: FC<Props> = memo((props) => {
               </FormControl>
             </Stack>
           </ModalBody>
-          <ModalFooter>
-            <Button type="submit">登録</Button>
-            <Button type="button" onClick={() => onClickClose() && onClose()}>
+          <ModalFooter gap={3}>
+            <Button
+              type="submit"
+              colorScheme="blue"
+              leftIcon={<AddIcon />}
+              _hover={{ transform: 'translateY(-2px)', shadow: 'md' }}
+            >
+              登録
+            </Button>
+            <Button
+              type="button"
+              onClick={() => onClickClose() && onClose()}
+              variant="ghost"
+              colorScheme="gray"
+            >
               閉じる
             </Button>
           </ModalFooter>
