@@ -1,5 +1,5 @@
 import { Record } from '../domain/record';
-
+// 日付のテスト
 describe('formatDate', () => {
   it('should format date correctly', () => {
     const dateStr = '2024-12-14T13:36:56Z';
