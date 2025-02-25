@@ -84,7 +84,7 @@ export const StudyRegModal: FC<Props> = memo((props) => {
             bg="blue.600"
             color="white" // ヘッダーテキストを白に
           >
-            登録
+            学習記録登録
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody mx={12} mt={4}>

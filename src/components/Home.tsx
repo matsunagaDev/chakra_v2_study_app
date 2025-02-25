@@ -154,12 +154,8 @@ export const Home = () => {
                   <Th textAlign="center" px={8} py={6} whiteSpace="nowrap">
                     更新時間
                   </Th>
-                  <Th textAlign="center" px={8} py={6}>
-                    編集
-                  </Th>
-                  <Th textAlign="center" px={8} py={6}>
-                    削除
-                  </Th>
+                  <Th textAlign="center" px={8} py={6}></Th>
+                  <Th textAlign="center" px={8} py={6}></Th>
                 </Tr>
               </Thead>
               <Tbody>

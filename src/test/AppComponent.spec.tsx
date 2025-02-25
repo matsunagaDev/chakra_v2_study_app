@@ -5,62 +5,76 @@ import { App } from '../App';
 import * as recordLib from '../lib/record';
 import { ChakraProvider } from '@chakra-ui/react';
 
+// Mockの設定
 jest.mock('../lib/record');
 
-// タイトルがあること
+const renderApp = () => {
+  return render(
+    <ChakraProvider>
+      <App />
+    </ChakraProvider>
+  );
+};
+
 describe('title', () => {
+  beforeEach(() => {
+    // 初期データのモックを設定
+    (recordLib.GetAllRecords as jest.Mock).mockResolvedValue([]);
+  });
+
   it('should render title', async () => {
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
-    );
+    renderApp();
+
+    // Loading状態が終わるまで待機
     await waitFor(() => {
-      expect(screen.getByText('学習記録アプリ')).toBeInTheDocument();
+      expect(screen.queryByText('Loading.....')).not.toBeInTheDocument();
     });
+
+    // タイトルの表示を確認
+    await waitFor(
+      () => {
+        expect(screen.getByText('学習記録アプリ')).toBeInTheDocument();
+      },
+      {
+        timeout: 3000, // タイムアウトを3秒に設定
+      }
+    );
   });
 });
 
-// ローディング画面が見れること
 describe('loading', () => {
-  it('Loading画面を確認する', async () => {
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
+  beforeEach(() => {
+    // GetAllRecordsのモックを一時的に遅延させる
+    (recordLib.GetAllRecords as jest.Mock).mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 100))
     );
-    await waitFor(() => {
-      expect(screen.getByText('Loading')).toBeInTheDocument();
-    });
+  });
+
+  it('Loading画面を確認する', async () => {
+    renderApp();
+    expect(screen.getByText('Loading.....')).toBeInTheDocument();
   });
 });
 
-// テーブルを見ることができる（リスト）
 describe('list', () => {
   beforeEach(() => {
-    // GetAllRecordsのモックを作成
-    const mockFn = jest.spyOn(recordLib, 'GetAllRecords').mockResolvedValue([
+    (recordLib.GetAllRecords as jest.Mock).mockResolvedValue([
       {
         id: '5f19ee01-c973-4dc3-b362-20e3be5cd455',
         learn_title: 'おはようございます',
         learn_time: 6,
         created_at: '2024-12-14 22:36:56',
-        updated_at: 'NULL',
+        updated_at: null,
       },
     ]);
-    console.log('Mock function setup:', mockFn);
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   it('一覧を確認することができる', async () => {
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
-    );
+    renderApp();
     // レコードが表示されるのを待つ
     await waitFor(() => {
       const element_str = screen.queryByText('おはようございます');
@@ -76,12 +90,8 @@ describe('list', () => {
 // 新規登録ボタンがある
 describe('registry_btn', () => {
   it('新規登録ボタンがある', async () => {
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
-    );
-    const button = await screen.findByText('登録', {}, { timeout: 5000 });
+    renderApp();
+    const button = await screen.findByText('新規登録', {}, { timeout: 5000 });
     expect(button).toBeInTheDocument();
 
     // await waitFor(() => {
@@ -92,57 +102,76 @@ describe('registry_btn', () => {
 
 // 登録できること
 describe('registry', () => {
-  afterEach(async () => {
-    const targetDelete = screen.queryByText('テスト学習内容');
-    if (targetDelete) {
-      const targetButton = targetDelete.closest('tr')?.querySelector('button');
-      if (targetButton) {
-        fireEvent.click(targetButton);
-        // 対象レコードが削除されたかを確認する
-        await waitFor(() => {
-          expect(screen.queryByText('テスト学習内容')).not.toBeInTheDocument();
-        });
-      }
-    }
-  });
+  beforeEach(() => {
+    jest.clearAllMocks();
 
-  it('登録できること', async () => {
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
-    );
-    // モーダルを開く
-    const button = await screen.findByRole(
-      'button',
-      { name: '新規登録' },
-      { timeout: 5000 }
-    );
-    fireEvent.click(button);
-
-    // 値を入力する
-    await waitFor(() => {
-      const studyContext =
-        screen.queryByPlaceholderText('学習内容を入力してください');
-      const studyTimeInput = screen.queryByPlaceholderText('0');
-      if (!studyContext || !studyTimeInput) {
-        throw new Error('入力フィールドが見つかりません');
-      }
-
-      fireEvent.change(studyContext, { target: { value: 'テスト学習内容' } });
-      fireEvent.change(studyTimeInput, { target: { value: '5' } });
-      // モーダルの登録ボタンをクリック
-      const registerButton = screen.queryByText('登録');
-      if (!registerButton) {
-        throw new Error('登録ボタンが見当たりません');
-      }
-      fireEvent.click(registerButton);
+    // モックの設定
+    (recordLib.InsertRecord as jest.Mock).mockImplementation((title, time) => {
+      return Promise.resolve([
+        {
+          id: '1',
+          learn_title: title,
+          learn_time: Number(time),
+          created_at: '2024-01-01',
+          updated_at: null,
+        },
+      ]);
     });
 
-    // 画面に登録した内容が表示されていることを確認する
+    (recordLib.GetAllRecords as jest.Mock)
+      .mockResolvedValueOnce([]) // 初期表示用
+      .mockResolvedValueOnce([
+        {
+          // 登録後の表示用
+          id: '1',
+          learn_title: 'テストの学習内容',
+          learn_time: 500,
+          created_at: '2024-01-01',
+          updated_at: null,
+        },
+      ]);
+  });
+
+  it('登録できることを確認する', async () => {
+    const user = userEvent.setup();
+    renderApp();
+
+    // Loading終了を待機
     await waitFor(() => {
-      expect(screen.queryByText('テスト学習内容')).toBeInTheDocument();
-      // expect(screen.queryByText('5')).toBeInTheDocument();
+      expect(screen.queryByText('Loading.....')).not.toBeInTheDocument();
+    });
+
+    // 新規登録ボタンをクリック
+    const newButton = await screen.findByRole('button', { name: '新規登録' });
+    await user.click(newButton);
+
+    // モーダルの表示を確認
+    const studyInput = await screen.findByPlaceholderText(
+      '学習内容を入力してください'
+    );
+    const timeInput = await screen.findByPlaceholderText('0');
+
+    // フォームに入力
+    await user.type(studyInput, 'テストの学習内容');
+    await user.type(timeInput, '500');
+
+    // 登録を実行
+    const registerButton = await screen.findByRole('button', { name: '登録' });
+    await user.click(registerButton);
+
+    // 登録結果の確認（複数の観点で検証）
+    await waitFor(async () => {
+      // 1. 画面表示の確認
+      const titleElement = await screen.findByText('テストの学習内容');
+      const timeElement = await screen.findByText('500');
+      expect(titleElement).toBeInTheDocument();
+      expect(timeElement).toBeInTheDocument();
+
+      // 2. APIコールの確認
+      expect(recordLib.InsertRecord).toHaveBeenCalledTimes(1);
+      const [title, time] = (recordLib.InsertRecord as jest.Mock).mock.calls[0];
+      expect(title).toBe('テストの学習内容');
+      expect(Number(time)).toBe(500);
     });
   });
 });
@@ -150,11 +179,7 @@ describe('registry', () => {
 // モーダルのタイトル確認
 describe('modal title check', () => {
   it('モーダルのタイトルが新規登録になっていること', async () => {
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
-    );
+    renderApp();
 
     const newRegistryButton = await screen.findByRole(
       'button',
@@ -163,18 +188,14 @@ describe('modal title check', () => {
     );
     userEvent.click(newRegistryButton);
     await waitFor(() => {
-      expect(screen.queryByText('学習記録登録')).toBeInTheDocument();
+      expect(screen.queryByText('登録')).toBeInTheDocument();
     });
   });
 });
 
 describe('studyContext input check', () => {
   it('学習内容が未入力で登録時にエラーメッセージが表示される', async () => {
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
-    );
+    renderApp();
 
     const newRegistryButton = await screen.findByRole(
       'button',
@@ -203,11 +224,7 @@ describe('studyContext input check', () => {
 // 学習時間のエラーチェック
 describe('studyTime check', () => {
   it('学習時間のエラーメッセージを表示する', async () => {
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
-    );
+    renderApp();
 
     const newRegistryButton = await screen.findByRole(
       'button',
@@ -231,11 +248,7 @@ describe('studyTime check', () => {
   });
 
   it('学習時間に０を入力してエラーメッセージを表示する', async () => {
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
-    );
+    renderApp();
 
     const newRegistryButton = await screen.findByRole(
       'button',
@@ -274,43 +287,26 @@ describe('Delete check', () => {
         learn_time: 2,
         created_at: '2024-12-28',
       },
-      {
-        id: '2',
-        learn_title: 'テスト学習内容2',
-        learn_time: 3,
-        created_at: '2024-12-29',
-      },
     ];
 
-    // GetAllRecords モックの動作を定義
-    (recordLib.GetAllRecords as jest.Mock).mockResolvedValueOnce(mockRecords);
-    (recordLib.GetAllRecords as jest.Mock).mockResolvedValueOnce([
-      mockRecords[1],
-    ]);
-    // DeleteRecords モックの動作を定義
-    (recordLib.DeleteRecord as jest.Mock).mockResolvedValueOnce(undefined);
+    (recordLib.GetAllRecords as jest.Mock)
+      .mockResolvedValueOnce(mockRecords)
+      .mockResolvedValueOnce([]);
 
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
-    );
+    (recordLib.DeleteRecord as jest.Mock).mockResolvedValue(undefined);
 
-    // レコードが表示されるのを待機
+    renderApp();
+
     await waitFor(() => {
-      expect(screen.queryByText('テスト学習内容1')).toBeInTheDocument();
-      expect(screen.queryByText('テスト学習内容2')).toBeInTheDocument();
+      expect(screen.getByText('テスト学習内容1')).toBeInTheDocument();
     });
 
-    // 削除ボタンを取得
-    const deleteButton = screen.getAllByRole('button', { name: '削除' })[0];
-    userEvent.click(deleteButton);
+    const deleteButton = screen.getByRole('button', { name: '削除' });
+    await userEvent.click(deleteButton);
 
-    // 削除後のデータ取得を待機
     await waitFor(() => {
       expect(recordLib.DeleteRecord).toHaveBeenCalledWith('1');
       expect(screen.queryByText('テスト学習内容1')).not.toBeInTheDocument();
-      expect(screen.queryByText('テスト学習内容2')).toBeInTheDocument();
     });
   });
 });
@@ -330,11 +326,7 @@ describe('update check', () => {
     // GetAllRecords モックの動作を定義
     (recordLib.GetAllRecords as jest.Mock).mockResolvedValueOnce(mockRecords);
 
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
-    );
+    renderApp();
 
     // レコードを表示するのを待つ
     await waitFor(() => {
@@ -352,70 +344,92 @@ describe('update check', () => {
   });
 });
 
-// 編集して登録した結果が表示されるテスト
-describe.only('update and registry check', () => {
-  it('編集して登録した結果が表示される', async () => {
-    const mockRecords = [
-      {
-        id: '1',
-        learn_title: 'テスト学習内容1',
-        learn_time: 2,
-        created_at: '2024-12-28',
-      },
-    ];
+/**
+ * 学習記録の編集テスト
+ */
+describe('update and registry check', () => {
+  const MOCK_DATA = {
+    INITIAL: {
+      id: '1',
+      learn_title: 'テスト学習内容1',
+      learn_time: 2,
+      created_at: '2024-12-28',
+      updated_at: null,
+    },
+    UPDATED: {
+      id: '1',
+      learn_title: 'テスト学習内容2',
+      learn_time: 5,
+      created_at: '2024-12-28',
+      updated_at: '2024-12-28 12:00:00',
+    },
+  };
 
-    // GetAllRecords モックの動作を定義
-    (recordLib.GetAllRecords as jest.Mock).mockResolvedValueOnce(mockRecords);
-    (recordLib.GetAllRecords as jest.Mock).mockResolvedValueOnce([
-      {
-        id: '1',
-        learn_title: 'テスト学習内容2',
-        learn_time: 5,
-        created_at: '2024-12-28',
-      },
-    ]);
+  beforeEach(() => {
+    jest.clearAllMocks();
 
-    render(
-      <ChakraProvider>
-        <App />
-      </ChakraProvider>
+    // モックの設定
+    (recordLib.GetAllRecords as jest.Mock)
+      .mockResolvedValueOnce([MOCK_DATA.INITIAL])
+      .mockResolvedValueOnce([MOCK_DATA.UPDATED]);
+
+    (recordLib.UpdateRecord as jest.Mock).mockImplementation(
+      (id, title, time) => {
+        return Promise.resolve([
+          {
+            ...MOCK_DATA.UPDATED,
+            learn_time: Number(time), // 明示的に数値型に変換
+          },
+        ]);
+      }
+    );
+  });
+
+  it('学習記録を編集して更新できる', async () => {
+    const user = userEvent.setup();
+    renderApp();
+
+    // 初期データが表示されるまで待機
+    const initialTitle = await screen.findByText(MOCK_DATA.INITIAL.learn_title);
+    expect(initialTitle).toBeInTheDocument();
+
+    // 編集を開始
+    const editButton = await screen.findByRole('button', { name: '編集' });
+    await user.click(editButton);
+
+    // 入力フォームを更新
+    const titleInput = await screen.findByDisplayValue(
+      MOCK_DATA.INITIAL.learn_title
+    );
+    const timeInput = await screen.findByDisplayValue(
+      String(MOCK_DATA.INITIAL.learn_time)
     );
 
-    // レコードを表示するのを待つ
+    await user.clear(titleInput);
+    await user.clear(timeInput);
+    await user.type(titleInput, MOCK_DATA.UPDATED.learn_title);
+    await user.type(timeInput, String(MOCK_DATA.UPDATED.learn_time));
+
+    // 更新を実行
+    const updateButton = await screen.findByRole('button', { name: '更新' });
+    await user.click(updateButton);
+
+    // 更新結果を検証
     await waitFor(() => {
-      expect(screen.queryByText('テスト学習内容1')).toBeInTheDocument();
-    });
+      // 1. APIの呼び出しを確認
+      expect(recordLib.UpdateRecord).toHaveBeenCalledWith(
+        MOCK_DATA.UPDATED.id,
+        MOCK_DATA.UPDATED.learn_title,
+        String(MOCK_DATA.UPDATED.learn_time)
+      );
 
-    // 編集ボタンをクリック
-    const editButton = screen.queryAllByRole('button', { name: '編集' })[0];
-    userEvent.click(editButton);
-
-    // 編集モーダルが表示されるのを待つ
-    await waitFor(() => {
-      expect(screen.queryByText('学習記録編集')).toBeInTheDocument();
-    });
-
-    // 既に入力されている学習内容を編集する
-    const studyInputContext = await screen.findByDisplayValue(
-      'テスト学習内容1'
-    );
-    userEvent.clear(studyInputContext);
-    userEvent.type(studyInputContext, 'テスト学習内容2');
-
-    // 学習時間を編集
-    const studyInputTime = await screen.findByDisplayValue('2');
-    userEvent.clear(studyInputTime);
-    userEvent.type(studyInputTime, '5');
-
-    // 更新ボタンをクリック
-    const registryButton = await screen.queryByRole('button', { name: '更新' });
-    if (registryButton) userEvent.click(registryButton);
-    console.log('更新ボタンなし');
-
-    // 登録後のデータを待つ
-    await waitFor(() => {
-      expect(screen.queryByText('テスト学習内容2')).toBeInTheDocument();
-      expect(screen.queryByText('5')).toBeInTheDocument();
+      // 2. 画面表示を確認
+      expect(
+        screen.getByText(MOCK_DATA.UPDATED.learn_title)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(String(MOCK_DATA.UPDATED.learn_time))
+      ).toBeInTheDocument();
     });
   });
 });

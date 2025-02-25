@@ -80,7 +80,7 @@ export const StudyDetailModal: FC<Props> = memo((props) => {
             bg="teal.500"
             color="white" // ヘッダーテキストを白に
           >
-            編集
+            学習記録編集
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody mx={12} mt={4}>
