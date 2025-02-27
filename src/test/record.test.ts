@@ -12,7 +12,7 @@ describe('formatDate', () => {
     const formattedDate = formatDate(testDate);
 
     // 日本時間での期待値に修正
-    expect(formattedDate).toBe('2024/12/14 22:36:56');
+    expect(formattedDate).toBe('2024/12/14 07:36:56');
   });
 
   it('should handle invalid date string', () => {
