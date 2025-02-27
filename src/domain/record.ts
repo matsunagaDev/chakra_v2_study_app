@@ -25,7 +25,7 @@ export class Record {
 }
 
 // 日時変換
-function formatDate(dateString: string): string {
+export function formatDate(dateString: string): string {
   const date = new Date(dateString);
   // 無効な時間の場合エラーメッセージを表示
   if (isNaN(date.getTime())) {
