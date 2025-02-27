@@ -8,3 +8,8 @@ if (!global.structuredClone) {
     return parsed;
   };
 }
+
+// jest.setup.tsに下記を追加
+global.TextEncoder = require('util').TextEncoder;
+
+// TextEncoderがすべてのテストでグローバルに使用できるようになる
