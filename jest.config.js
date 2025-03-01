@@ -7,6 +7,8 @@ export default {
       'ts-jest',
       {
         tsconfig: 'tsconfig.app.json',
+        useESM: true,
+        isolatedModules: true,
       },
     ],
   },
@@ -14,12 +16,9 @@ export default {
     '\\.(css|less)$': 'identity-obj-proxy',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+
   // タイムゾーン設定を追加
   globals: {
-    'ts-jest': {
-      useESM: true,
-      isolatedModules: true,
-    },
     NODE_ENV: 'test',
     TZ: 'Asia/Tokyo',
   },
