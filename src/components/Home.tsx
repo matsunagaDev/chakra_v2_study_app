@@ -30,9 +30,12 @@ import { useSelectStudy } from '../hooks/useSelectStudy';
 import { AddIcon } from '@chakra-ui/icons';
 
 export const Home = () => {
+  // ページネーション関連の状態
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // 1ページあたりの表示件数
+  const itemsPerPage = 5;
+  const [pageInputValue, setPageInputValue] = useState(currentPage.toString());
 
+  // モーダル関連のフック
   const {
     isOpen: RegModalOpen,
     onOpen: onRegModalOpen,
@@ -43,9 +46,17 @@ export const Home = () => {
     onOpen: onDetailModalOpen,
     onClose: onDetailModalClose,
   } = useDisclosure();
-  const { getStudy, studies, loading } = useAllStudy();
+
+  // カスタムフック
+  const { getStudy, studies, loading, setStudyDirectly } = useAllStudy();
   const { onSelectStudy, selectedStudy } = useSelectStudy();
 
+  // 1ページ目に戻す関数
+  const resetToFirstPage = useCallback(() => {
+    setCurrentPage(1);
+  }, []);
+
+  // 詳細表示ハンドラ
   const onClickStudy = useCallback(
     (id: string) => {
       onSelectStudy({ id, studies, onDetailModalOpen });
@@ -53,59 +64,101 @@ export const Home = () => {
     [studies, onSelectStudy, onDetailModalOpen]
   );
 
+  // レコード削除ハンドラ
   const onClickDelete = async (id: string) => {
-    console.log(`削除するid: ${id}です`);
-    await DeleteRecord(id);
-    await getStudy();
+    try {
+      // 楽観的UI更新（削除前にUIを先に更新）
+      const filteredStudies = studies.filter((study) => study.id !== id);
+
+      // 現在ページの最後のアイテムを削除する場合、前のページに移動
+      const currentItemsAfterDeletion = currentItems.filter(
+        (item) => item.id !== id
+      );
+      if (currentItemsAfterDeletion.length === 0 && currentPage > 1) {
+        setCurrentPage((prevPage) => prevPage - 1);
+      }
+
+      // UI状態の即時更新
+      setStudyDirectly(filteredStudies);
+
+      // バックグラウンドで削除処理
+      await DeleteRecord(id);
+    } catch (error) {
+      console.error('削除に失敗しました', error);
+      await getStudy(); // エラー時はデータを再取得
+    }
   };
 
+  // 更新ハンドラ
   const handleUpdate = async () => {
     await getStudy();
   };
 
+  // 新規登録ハンドラ
   const handleInsert = async () => {
     await getStudy();
+    resetToFirstPage(); // 新規登録後は1ページ目に戻す
   };
 
+  // 初回レンダリング時にデータ取得
   useEffect(() => {
     getStudy();
   }, []);
 
-  // ページネーション用のデータ加工を修正
+  // ページネーション用のデータ計算
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  // スライスの終了インデックスを修正
   const currentItems = studies.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(studies.length / itemsPerPage);
 
+  // ページ変更ハンドラ
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
+  // 前ページへ移動
   const handlePrevPage = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
 
+  // 次ページへ移動
   const handleNextPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-  const handlePageInputChange = (valueAsNumber: number) => {
-    if (
-      !isNaN(valueAsNumber) &&
-      valueAsNumber >= 1 &&
-      valueAsNumber <= totalPages
-    ) {
-      setCurrentPage(valueAsNumber);
+  // ページ入力値の変更ハンドラ
+  const handlePageInputChange = (
+    valueAsString: string,
+    valueAsNumber: number
+  ) => {
+    setPageInputValue(valueAsString);
+  };
+
+  // Enterキー押下時のページ移動ハンドラ
+  const handlePageInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      const pageNum = parseInt(pageInputValue, 10);
+      if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+        setCurrentPage(pageNum);
+      } else {
+        setPageInputValue(currentPage.toString()); // 不正値はリセット
+      }
     }
   };
 
+  // ページ変更時に入力欄の値も更新
+  useEffect(() => {
+    setPageInputValue(currentPage.toString());
+  }, [currentPage]);
+
+  // ローディング中の表示
   if (loading) {
     return <p>Loading.....</p>;
   }
 
   return (
     <Container maxW="container.xl" py={8}>
+      {/* ヘッダー部分 */}
       <VStack spacing={6} align="center" w="full">
         <Flex w="full" justify="space-between" align="center" mb={6}>
           <Heading>学習記録アプリ</Heading>
@@ -123,6 +176,7 @@ export const Home = () => {
           </Button>
         </Flex>
 
+        {/* テーブル部分 */}
         <Box w="full" display="flex" justifyContent="center">
           <TableContainer
             width="100%"
@@ -159,6 +213,7 @@ export const Home = () => {
                 </Tr>
               </Thead>
               <Tbody>
+                {/* レコード一覧 */}
                 {currentItems.map((study) => (
                   <Tr key={study.id} _hover={{ bg: 'gray.50' }}>
                     <Td textAlign="center" px={8} py={4}>
@@ -211,9 +266,10 @@ export const Home = () => {
         </Box>
       </VStack>
 
-      {/* ページネーションボタンは表示する必要がある場合のみ表示 */}
+      {/* ページネーション */}
       {totalPages > 1 && (
         <Flex mt={6} justify="center" align="center" gap={2}>
+          {/* 前ページボタン */}
           <IconButton
             aria-label="前のページ"
             icon={<ChevronLeftIcon />}
@@ -224,11 +280,11 @@ export const Home = () => {
             colorScheme="teal"
           />
 
+          {/* ページ番号ボタン */}
           {Array.from({ length: totalPages }, (_, i) => {
             const pageNum = i + 1;
             const isCurrentPage = pageNum === currentPage;
 
-            // 現在のページの前後2ページまでと最初・最後のページを表示
             if (
               pageNum === 1 ||
               pageNum === totalPages ||
@@ -251,7 +307,6 @@ export const Home = () => {
               pageNum === currentPage - 3 ||
               pageNum === currentPage + 3
             ) {
-              // ページ番号が飛ぶ場所に省略記号を表示
               return (
                 <Text key={pageNum} mx={1}>
                   ...
@@ -261,25 +316,30 @@ export const Home = () => {
             return null;
           })}
 
+          {/* ページ直接入力 */}
           <NumberInput
             min={1}
             max={totalPages}
-            value={currentPage}
-            onChange={(_, value) => handlePageInputChange(value)}
+            value={pageInputValue}
+            onChange={handlePageInputChange}
             size="sm"
             w="70px"
             ml={2}
+            keepWithinRange={true}
+            clampValueOnBlur={true}
           >
             <NumberInputField
               textAlign="center"
               borderColor="teal.200"
               _hover={{ borderColor: 'teal.300' }}
+              onKeyDown={handlePageInputKeyDown}
             />
           </NumberInput>
           <Text fontSize="sm" color="gray.600" ml={1}>
             / {totalPages}
           </Text>
 
+          {/* 次ページボタン */}
           <IconButton
             aria-label="次のページ"
             icon={<ChevronRightIcon />}
@@ -292,6 +352,7 @@ export const Home = () => {
         </Flex>
       )}
 
+      {/* モーダル */}
       <StudyRegModal
         open={RegModalOpen}
         onClose={onRegModalClose}

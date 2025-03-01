@@ -30,7 +30,7 @@ type FormValues = {
 export const StudyRegModal: FC<Props> = memo((props) => {
   const { open, onClose, onInsert } = props;
   const [error, setError] = useState<string>('');
-  const [records, setRecords] = useState<Record[]>([]);
+  // const [records, setRecords] = useState<Record[]>([]);
   const {
     register,
     handleSubmit,
@@ -44,16 +44,16 @@ export const StudyRegModal: FC<Props> = memo((props) => {
     try {
       // insert用関数
       const AddRecord = await InsertRecord(data.studyContext, data.studyTime);
-      console.log(`AddRecord = ${AddRecord}`);
-      if (AddRecord) {
-        setRecords((prev) => [...prev, AddRecord[0]]);
-        console.log(records);
+
+      console.log(`登録したレコード = ${AddRecord}`);
+      if (AddRecord && AddRecord.length > 0) {
+        // 親コンポーネントの更新処理を実行
+        onInsert();
+        // モーダルのテキストボックスをクリア
+        reset({ studyContext: '', studyTime: 0 });
+        // 追加が成功した場合、モーダルを閉じる
+        onClose();
       }
-      onInsert();
-      // モーダルのテキストボックスをクリア
-      reset({ studyContext: '', studyTime: 0 });
-      // 追加が成功した場合、モーダルを閉じる
-      onClose();
     } catch (e) {
       console.error('データの登録に失敗', error);
       setError('データの登録に失敗しました');

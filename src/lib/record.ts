@@ -3,7 +3,12 @@ import { supabase } from '../utils/supabase';
 
 // 全件表示
 export async function GetAllRecords(): Promise<Record[]> {
-  const RecordsData = await supabase.from('study-record').select('*');
+  // orderBy を追加して created_at の降順（新しい順）に取得
+  const RecordsData = await supabase
+    .from('study-record')
+    .select('*')
+    .order('created_at', { ascending: false });
+
   if (RecordsData.error) {
     throw new Error(RecordsData.error.message);
   }
