@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import dotenv from 'dotenv';
 
 require('dotenv').config();
 if (!global.structuredClone) {
@@ -9,7 +10,8 @@ if (!global.structuredClone) {
   };
 }
 
-// jest.setup.tsに下記を追加
+// TextEncoderがすべてのテストでグローバルに使用できるようになる
 global.TextEncoder = require('util').TextEncoder;
 
-// TextEncoderがすべてのテストでグローバルに使用できるようになる
+// jestで.envファイルを読み込む
+dotenv.config({ path: '.env.test' });
